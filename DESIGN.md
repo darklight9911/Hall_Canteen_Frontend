@@ -36,7 +36,7 @@ at the **/styleguide** route (admin / dev only).
 
 ## Typography
 
-- Font: **Nunito Sans** (`--font-sans`), the closest free match to Blinkit's "Okra".
+- Font: **Lexend** (`--font-sans`), a clean, high-legibility variable sans.
 - Scale: headings `text-2xl font-extrabold`; sections `text-lg font-extrabold`; body
   `text-sm`–`text-base`; prices `font-extrabold`; muted captions `text-xs text-muted-foreground`.
 - Lean on heavy weights (`font-bold` / `font-extrabold` / `font-black`) — Blinkit's look is bold.

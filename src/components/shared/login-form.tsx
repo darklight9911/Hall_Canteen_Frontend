@@ -35,7 +35,7 @@ export function LoginForm() {
       role,
     });
     toast.success("Signed in");
-    router.push("/menu");
+    router.push("/");
   }
 
   return (

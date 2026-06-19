@@ -54,7 +54,7 @@ export default function StyleguidePage() {
         </div>
       </Section>
 
-      <Section title="Typography (Nunito Sans)">
+      <Section title="Typography (Lexend)">
         <div className="space-y-1">
           <p className="text-2xl font-extrabold">Heading · 2xl / extrabold</p>
           <p className="text-lg font-extrabold">Section · lg / extrabold</p>

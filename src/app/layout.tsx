@@ -1,12 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito_Sans } from "next/font/google";
+import { Lexend } from "next/font/google";
 import "@/styles/globals.css";
 import { Toaster } from "sonner";
 
-const nunito = Nunito_Sans({
+const lexend = Lexend({
   subsets: ["latin"],
-  weight: ["400", "600", "700", "800", "900"],
-  variable: "--font-nunito",
+  variable: "--font-lexend",
   display: "swap",
 });
 
@@ -30,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${nunito.variable} font-sans antialiased`}>
+      <body className={`${lexend.variable} font-sans antialiased`}>
         {children}
         <Toaster richColors position="top-right" />
       </body>

@@ -4,6 +4,7 @@
   /* ===== Brand (Blinkit-inspired) ===== */
   --color-brand: hsl(44 92% 62%);            /* #F8CB46 signature yellow */
   --color-brand-foreground: hsl(0 0% 11%);   /* dark text on yellow */
+  --color-gold: hsl(41 75% 52%);             /* #E1A82B legible gold (logo "hall") */
   --color-success: hsl(129 83% 28%);         /* #0C831F action green */
   --color-success-foreground: hsl(0 0% 100%);
   --color-info: hsl(220 86% 54%);            /* #256FEF discount blue */
@@ -44,13 +45,14 @@
   --shadow-header: 0 2px 8px hsl(240 10% 10% / 0.06);
 
   /* ===== Font ===== */
-  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
 
   /* ===== Animations ===== */
   --animate-overlay-in: overlay-in 0.18s ease-out;
   --animate-content-in: content-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-slide-in-left: slide-in-left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-slide-in-right: slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-up: slide-up 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @keyframes overlay-in {
@@ -68,6 +70,10 @@
 @keyframes slide-in-right {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
+}
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 @layer base {
