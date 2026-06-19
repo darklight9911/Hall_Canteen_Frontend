@@ -1,24 +1,73 @@
 @import "tailwindcss";
 
 @theme {
+  /* ===== Brand (Blinkit-inspired) ===== */
+  --color-brand: hsl(44 92% 62%);            /* #F8CB46 signature yellow */
+  --color-brand-foreground: hsl(0 0% 11%);   /* dark text on yellow */
+  --color-success: hsl(129 83% 28%);         /* #0C831F action green */
+  --color-success-foreground: hsl(0 0% 100%);
+  --color-info: hsl(220 86% 54%);            /* #256FEF discount blue */
+  --color-info-foreground: hsl(0 0% 100%);
+
+  /* ===== Semantic (shadcn reads these) ===== */
   --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(240 10% 3.9%);
+  --color-foreground: hsl(0 0% 11%);
   --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(240 10% 3.9%);
-  --color-border: hsl(240 5.9% 90%);
-  --color-input: hsl(240 5.9% 90%);
-  --color-ring: hsl(240 10% 3.9%);
-  --color-primary: hsl(240 5.9% 10%);
-  --color-primary-foreground: hsl(0 0% 98%);
-  --color-secondary: hsl(240 4.8% 95.9%);
-  --color-secondary-foreground: hsl(240 5.9% 10%);
-  --color-muted: hsl(240 4.8% 95.9%);
-  --color-muted-foreground: hsl(240 3.8% 46.1%);
-  --color-accent: hsl(240 4.8% 95.9%);
-  --color-accent-foreground: hsl(240 5.9% 10%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(0 0% 98%);
-  --radius: 0.5rem;
+  --color-card-foreground: hsl(0 0% 11%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(0 0% 11%);
+  --color-primary: hsl(129 83% 28%);         /* GREEN = primary CTA */
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(240 9% 97%);
+  --color-secondary-foreground: hsl(0 0% 11%);
+  --color-muted: hsl(240 9% 97%);            /* #F7F7F8 section bg */
+  --color-muted-foreground: hsl(230 5% 53%); /* #7E808C secondary text */
+  --color-accent: hsl(44 92% 96%);           /* faint yellow hover tint */
+  --color-accent-foreground: hsl(0 0% 11%);
+  --color-destructive: hsl(351 70% 50%);     /* #D7263D */
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border: hsl(240 22% 95%);          /* #EFEFF4 hairline */
+  --color-input: hsl(240 22% 95%);
+  --color-ring: hsl(129 83% 28%);            /* green focus ring */
+
+  /* ===== Radius (Blinkit rounding) ===== */
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* ===== Shadows (flat/subtle) ===== */
+  --shadow-card: 0 1px 4px hsl(240 10% 10% / 0.06);
+  --shadow-card-hover: 0 6px 20px hsl(240 10% 10% / 0.12);
+  --shadow-header: 0 2px 8px hsl(240 10% 10% / 0.06);
+
+  /* ===== Font ===== */
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+
+  /* ===== Animations ===== */
+  --animate-overlay-in: overlay-in 0.18s ease-out;
+  --animate-content-in: content-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-in-left: slide-in-left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-in-right: slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes content-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
 
 @layer base {
@@ -28,5 +77,14 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Hide scrollbars on horizontal carousels (Blinkit-style scroll rows) */
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
