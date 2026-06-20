@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Lexend } from "next/font/google";
 import "@/styles/globals.css";
 import { Toaster } from "sonner";
+import { AuthBootstrap } from "@/components/auth/auth-bootstrap";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${lexend.variable} font-sans antialiased`}>
+        <AuthBootstrap />
         {children}
         <Toaster richColors position="top-right" />
       </body>

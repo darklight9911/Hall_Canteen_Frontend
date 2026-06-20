@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReceiptText, MapPin, HelpCircle, LogOut, LogIn, ChevronRight } from "lucide-react";
+import { signOut } from "firebase/auth";
 import { FoodShell } from "@/components/food/food-shell";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/firebase";
+import { logoutBackend } from "@/lib/auth-api";
 import { useAuthStore } from "@/store/auth";
 import { useMounted } from "@/hooks/use-mounted";
 
@@ -82,7 +85,15 @@ export default function AccountPage() {
       <Button
         variant="outline"
         className="mt-4 w-full"
-        onClick={() => {
+        onClick={async () => {
+          await logoutBackend();
+          if (auth) {
+            try {
+              await signOut(auth);
+            } catch {
+              // ignore — clear local session regardless
+            }
+          }
           setUser(null);
           router.push("/");
         }}
