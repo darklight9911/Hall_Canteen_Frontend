@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, signOut } from "firebase/auth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { auth, googleProvider } from "@/lib/firebase";
 import { loginWithEmail, loginWithGoogleToken, registerWithEmail } from "@/lib/auth-api";
+import { EMAIL_POLICY_MESSAGE, isAllowedEmail } from "@/lib/email-policy";
 import { useAuthStore } from "@/store/auth";
 
 type Mode = "signin" | "register";
@@ -35,6 +36,11 @@ export function LoginForm() {
     setLoading(true);
     try {
       const cred = await signInWithPopup(auth, googleProvider);
+      if (!isAllowedEmail(cred.user.email ?? "")) {
+        await signOut(auth);
+        toast.error(EMAIL_POLICY_MESSAGE);
+        return;
+      }
       const idToken = await cred.user.getIdToken();
       // Exchange the Firebase token for a backend Redis session (httpOnly cookie).
       const user = await loginWithGoogleToken(idToken);
@@ -55,6 +61,10 @@ export function LoginForm() {
     e.preventDefault();
     if (!email || !password) {
       toast.error("Enter your email and password");
+      return;
+    }
+    if (!isAllowedEmail(email)) {
+      toast.error(EMAIL_POLICY_MESSAGE);
       return;
     }
     if (mode === "register" && password.length < 8) {
@@ -131,7 +141,7 @@ export function LoginForm() {
           <Input
             id="email"
             type="email"
-            placeholder="you@campus.edu"
+            placeholder="you@diu.edu.bd"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -149,6 +159,7 @@ export function LoginForm() {
         <Button type="submit" size="lg" className="w-full" disabled={loading}>
           {mode === "register" ? "Create account" : "Sign in"}
         </Button>
+        <p className="text-center text-xs text-muted-foreground">{EMAIL_POLICY_MESSAGE}</p>
       </form>
     </div>
   );
