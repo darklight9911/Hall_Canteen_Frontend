@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Wordmark } from "@/components/shared/wordmark";
 import { LoginForm } from "@/components/shared/login-form";
 
@@ -16,6 +17,12 @@ export default function LoginPage() {
           </p>
         </div>
         <LoginForm />
+        <div className="border-t border-border pt-4 text-center text-sm">
+          <span className="text-muted-foreground">Run a food shop? </span>
+          <Link href="/partner/apply" className="font-extrabold text-success hover:underline">
+            Want to be a partner?
+          </Link>
+        </div>
       </div>
     </main>
   );

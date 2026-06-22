@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ReceiptText, MapPin, HelpCircle, LogOut, LogIn, ChevronRight } from "lucide-react";
+import { ReceiptText, MapPin, HelpCircle, LogOut, LogIn, ChevronRight, Store, ShieldCheck } from "lucide-react";
 import { signOut } from "firebase/auth";
 import { FoodShell } from "@/components/food/food-shell";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,16 @@ export default function AccountPage() {
     );
   }
 
+  const menu = [
+    ...(user.role === "partner" || user.role === "developer"
+      ? [{ icon: Store, label: "Partner dashboard", href: "/partner" }]
+      : []),
+    ...(user.role === "developer"
+      ? [{ icon: ShieldCheck, label: "Review partner applications", href: "/developer/applications" }]
+      : []),
+    ...MENU,
+  ];
+
   return (
     <FoodShell>
       <h1 className="mb-5 text-2xl font-extrabold tracking-tight text-foreground">Account</h1>
@@ -69,7 +79,7 @@ export default function AccountPage() {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        {MENU.map((m) => (
+        {menu.map((m) => (
           <Link
             key={m.label}
             href={m.href}

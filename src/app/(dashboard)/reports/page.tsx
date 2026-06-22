@@ -29,12 +29,12 @@ export default function ReportsPage() {
 
   // Auth is client-side (persisted store), so gate on the client after mount.
   if (!mounted) return null;
-  if (role !== "admin") {
+  if (role !== "developer") {
     return (
       <EmptyState
         icon={Lock}
-        title="Admins only"
-        description="You need an admin account to view reports. Sign in as an admin to continue."
+        title="Developers only"
+        description="You need a developer (admin) account to view reports."
       />
     );
   }

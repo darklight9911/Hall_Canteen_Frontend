@@ -33,7 +33,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const mounted = useMounted();
   const role = useAuthStore((s) => s.user?.role);
-  const items = NAV.filter((n) => !n.adminOnly || (mounted && role === "admin"));
+  const items = NAV.filter((n) => !n.adminOnly || (mounted && role === "developer"));
 
   return (
     <nav className="space-y-1">

@@ -93,7 +93,7 @@ frontend/
 │   │   ├── cart, checkout, track/   # Order flow
 │   │   ├── search, my-orders, account/
 │   │   ├── (auth)/login/            # Login page
-│   │   └── (dashboard)/             # Legacy admin views (menu/orders/billing/reports/styleguide)
+│   │   └── (dashboard)/             # Legacy management views (menu/orders/billing/reports/styleguide)
 │   ├── components/
 │   │   ├── food/                    # Marketplace UI + chrome (shell/header/footer/nav, cards, modal)
 │   │   ├── auth/auth-bootstrap.tsx  # Hydrates auth store from /auth/me
@@ -127,7 +127,7 @@ truth; the `auth` store is a client cache hydrated from `/auth/me`.
 | `/my-orders` | Past orders | server |
 | `/account` | Profile + logout | client |
 | `/login` | Google + email/password | client |
-| `(dashboard)`: `/menu` `/orders` `/billing` `/reports` `/styleguide` | Legacy admin views | mixed |
+| `(dashboard)`: `/menu` `/orders` `/billing` `/reports` `/styleguide` | Legacy management views | mixed |
 
 ## 4. Workflows — activity diagrams
 
@@ -292,6 +292,11 @@ first client render agree (no hydration mismatch).
 
 `useMounted()` (built on `useSyncExternalStore`) gates auth-dependent UI to avoid
 hydration mismatches.
+
+**Roles:** `student` (default) · `partner` (seller) · `developer` (admin, full
+access). The UI gates developer-only views (reports, style guide) and
+partner/developer management actions on `user.role`; the backend is the
+authoritative enforcer.
 
 ## 8. API client & cookies
 

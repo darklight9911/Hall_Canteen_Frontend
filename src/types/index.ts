@@ -1,4 +1,5 @@
-export type Role = "admin" | "staff" | "student";
+// developer = admin (full access) · partner = seller · student = default
+export type Role = "developer" | "partner" | "student";
 
 export interface User {
   id: string;

@@ -29,11 +29,11 @@ const STATUSES: OrderStatus[] = ["pending", "confirmed", "ready", "delivered", "
 export default function StyleguidePage() {
   const mounted = useMounted();
   const role = useAuthStore((s) => s.user?.role);
-  const allowed = role === "admin" || process.env.NODE_ENV !== "production";
+  const allowed = role === "developer" || process.env.NODE_ENV !== "production";
 
   if (!mounted) return null;
   if (!allowed) {
-    return <EmptyState icon={Lock} title="Admins only" description="The style guide is available to admins." />;
+    return <EmptyState icon={Lock} title="Developers only" description="The style guide is available to developers." />;
   }
 
   return (

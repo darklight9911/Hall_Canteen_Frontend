@@ -12,11 +12,15 @@ import {
   type Meal,
 } from "@/lib/restaurants";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth";
+import { useMounted } from "@/hooks/use-mounted";
 import { RestaurantCard } from "./restaurant-card";
 import { DishCard } from "./dish-card";
 
 export function HomeContent() {
   const [meal, setMeal] = useState<Meal | "all">("all");
+  const mounted = useMounted();
+  const user = useAuthStore((s) => s.user);
 
   const visibleRest = restaurants.filter((r) => meal === "all" || r.meals.includes(meal));
   let popSource = items.filter((i) => i.popular);
@@ -54,12 +58,14 @@ export function HomeContent() {
             >
               Explore restaurants →
             </a>
-            <Link
-              href="/login"
-              className="rounded-[14px] border-[1.5px] border-white/45 bg-white/10 px-6 py-3.5 text-base font-bold text-white"
-            >
-              Sign in
-            </Link>
+            {mounted && !user && (
+              <Link
+                href="/login"
+                className="rounded-[14px] border-[1.5px] border-white/45 bg-white/10 px-6 py-3.5 text-base font-bold text-white"
+              >
+                Sign in
+              </Link>
+            )}
           </div>
         </div>
         <div className="pointer-events-none absolute right-[5%] top-1/2 hidden -translate-y-1/2 text-[150px] opacity-95 md:block">🍛</div>

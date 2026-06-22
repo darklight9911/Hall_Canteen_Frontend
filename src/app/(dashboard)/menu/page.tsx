@@ -16,7 +16,7 @@ const CATEGORIES: MenuCategory[] = ["breakfast", "lunch", "dinner", "snacks"];
 export default function MenuPage() {
   const mounted = useMounted();
   const role = useAuthStore((s) => s.user?.role);
-  const canManage = mounted && (role === "admin" || role === "staff");
+  const canManage = mounted && (role === "developer" || role === "partner");
   const [active, setActive] = useState<MenuCategory | "all">("all");
 
   const shown = active === "all" ? CATEGORIES : [active];
