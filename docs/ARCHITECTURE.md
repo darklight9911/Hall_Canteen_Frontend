@@ -1,253 +1,214 @@
 # Hall Canteen — Frontend System Design
 
-> Single source of truth for the Next.js frontend: architecture, rendering model,
-> routing, design system, the multi-restaurant marketplace, state management, and
-> the authentication integration — with Mermaid diagrams and workflow diagrams.
+> Single source of truth for the Next.js frontend. All diagrams are **use case**,
+> **activity**, or **sequence** diagrams (Mermaid). Structural information is kept
+> as tables and text.
 
 **Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4
-(CSS-first `@theme`) · Lexend · hand-built shadcn-style UI · Zustand · Firebase
-Web SDK (Google sign-in) · recharts · sonner · deployed on Vercel.
+(`@theme`) · Lexend · hand-built shadcn-style UI · Zustand · Firebase Web SDK ·
+recharts · sonner · Vercel.
 
 ---
 
 ## Table of contents
 
-1. [Architecture overview](#1-architecture-overview)
-2. [Rendering model (RSC vs client)](#2-rendering-model-rsc-vs-client)
-3. [Directory structure](#3-directory-structure)
-4. [Routing map](#4-routing-map)
-5. [Design system](#5-design-system)
-6. [The marketplace](#6-the-marketplace)
+1. [Use case diagram](#1-use-case-diagram)
+2. [Directory structure](#2-directory-structure)
+3. [Routing map](#3-routing-map)
+4. [Workflows — activity diagrams](#4-workflows--activity-diagrams)
+   - [4.1 Sign in](#41-sign-in)
+   - [4.2 Browse & order](#42-browse--order)
+   - [4.3 Session bootstrap on load](#43-session-bootstrap-on-load)
+5. [Interactions — sequence diagrams](#5-interactions--sequence-diagrams)
+   - [5.1 Session bootstrap](#51-session-bootstrap)
+   - [5.2 Google sign-in](#52-google-sign-in)
+   - [5.3 Email sign-in / register](#53-email-sign-in--register)
+   - [5.4 Logout](#54-logout)
+6. [Design system](#6-design-system)
 7. [State management](#7-state-management)
-8. [Authentication integration](#8-authentication-integration)
-   - [8.1 Pieces](#81-pieces)
-   - [8.2 Session bootstrap](#82-session-bootstrap)
-   - [8.3 Google sign-in](#83-google-sign-in)
-   - [8.4 Email sign-in / register](#84-email-sign-in--register)
-   - [8.5 Logout](#85-logout)
-   - [8.6 DIU email restriction](#86-diu-email-restriction)
-9. [API client & cross-origin cookies](#9-api-client--cross-origin-cookies)
-10. [Component composition](#10-component-composition)
-11. [Build & deployment](#11-build--deployment)
+8. [API client & cookies](#8-api-client--cookies)
+9. [Build & deployment](#9-build--deployment)
 
 ---
 
-## 1. Architecture overview
+## 1. Use case diagram
 
-```mermaid
-flowchart TD
-    subgraph Browser
-      RSC["Server Components<br/>(pages, layouts, static content)"]
-      CI["Client islands<br/>('use client': cart, modal, header, forms)"]
-      ST["Zustand stores<br/>auth · food-cart · food-ui"]
-    end
-    API["lib/api.ts<br/>fetch wrapper (credentials: include)"]
-    BE["FastAPI backend :8000<br/>/api/v1/*"]
-    FB["Firebase Web SDK<br/>Google popup"]
-
-    RSC --> CI
-    CI --> ST
-    CI -->|sign-in| FB
-    CI --> API --> BE
-    ST -.hydrated from /auth/me.-> API
-```
-
-- **Server Components render the structure**; small **client islands** add
-  interactivity (cart steppers, the item sheet, the header, the login form).
-- The backend session (httpOnly cookie) is the **source of truth**; the Zustand
-  `auth` store is a client cache hydrated from `GET /auth/me`.
-
-## 2. Rendering model (RSC vs client)
+The user's use cases. The system boundary holds the use cases; the backend is an
+external actor for the auth ones. Dotted arrows are `include` relationships.
 
 ```mermaid
 flowchart LR
-    subgraph Server["Server Components (default)"]
-      P["pages / layouts"]
-      RC["RestaurantCard, FoodFooter"]
-      Menu["restaurants/:id (async params)"]
+    %% Use case diagram
+    user["👤 Student / User"]
+    backend["🔌 Backend API"]
+
+    subgraph app["Hall Canteen Web App"]
+        b1(["Browse restaurants"])
+        b2(["Search dishes"])
+        b3(["View restaurant menu"])
+        b4(["Add item to cart"])
+        b5(["Choose portion and quantity"])
+        b6(["Review cart"])
+        b7(["Checkout and place order"])
+        b8(["Track order"])
+        b9(["View past orders"])
+        a1(["Sign in with Google"])
+        a2(["Sign in with email"])
+        a3(["Register"])
+        a4(["Sign out"])
+        v1(["Validate DIU email"])
     end
-    subgraph Client["'use client' islands"]
-      H["FoodHeader / BottomNav"]
-      Cart["food cart UI (DishCard, MenuItemRow, Stepper)"]
-      Modal["ItemDetailModal"]
-      Login["LoginForm, AuthBootstrap"]
-    end
-    P --> RC
-    P --> H
-    P --> Cart
-    Menu --> Cart
+
+    user --- b1
+    user --- b2
+    user --- b3
+    user --- b4
+    user --- b6
+    user --- b7
+    user --- b8
+    user --- b9
+    user --- a1
+    user --- a2
+    user --- a3
+    user --- a4
+
+    b4 -. include .-> b5
+    a1 -. include .-> v1
+    a2 -. include .-> v1
+    a3 -. include .-> v1
+    a1 --- backend
+    a2 --- backend
+    a3 --- backend
 ```
 
-Rule of thumb: **server by default**; mark `"use client"` only when a component
-uses state, effects, browser APIs, or a Zustand store.
-
-## 3. Directory structure
+## 2. Directory structure
 
 ```
 frontend/
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx               # Root: Lexend font, <AuthBootstrap/>, <Toaster/>
+│   │   ├── layout.tsx               # Root: Lexend font, AuthBootstrap, Toaster
 │   │   ├── page.tsx                 # "/" marketplace home (FoodShell + HomeContent)
 │   │   ├── restaurants/[id]/        # Restaurant menu (server, async params)
 │   │   ├── cart, checkout, track/   # Order flow
 │   │   ├── search, my-orders, account/
 │   │   ├── (auth)/login/            # Login page
-│   │   ├── (dashboard)/             # Legacy admin views (menu/orders/billing/reports/styleguide)
-│   │   └── icon.tsx, apple-icon.tsx # Generated favicons
+│   │   └── (dashboard)/             # Legacy admin views (menu/orders/billing/reports/styleguide)
 │   ├── components/
 │   │   ├── food/                    # Marketplace UI + chrome (shell/header/footer/nav, cards, modal)
 │   │   ├── auth/auth-bootstrap.tsx  # Hydrates auth store from /auth/me
 │   │   ├── shared/                  # wordmark, login-form, page-header, …
-│   │   └── ui/                      # Hand-built shadcn-style primitives (button, card, …)
+│   │   └── ui/                      # Hand-built shadcn-style primitives
 │   ├── lib/
-│   │   ├── api.ts                   # fetch wrapper (BASE_URL, credentials: include)
+│   │   ├── api.ts                   # fetch wrapper (BASE_URL, credentials include)
 │   │   ├── auth-api.ts              # login/register/google/me/logout
 │   │   ├── firebase.ts              # env-driven Firebase init
 │   │   ├── email-policy.ts          # @diu.edu.bd allow-list
-│   │   ├── restaurants.ts           # marketplace data + cart math + Taka format
-│   │   └── utils.ts                 # cn()
-│   ├── store/                       # Zustand: auth, food-cart, food-ui, cart (legacy)
+│   │   └── restaurants.ts           # marketplace data + cart math + Taka format
+│   ├── store/                       # Zustand: auth, food-cart, food-ui
 │   ├── hooks/use-mounted.ts         # hydration-safe mounted flag
-│   └── styles/globals.css           # Tailwind v4 @theme tokens (design system)
+│   └── styles/globals.css           # Tailwind v4 @theme tokens
 ├── docs/ARCHITECTURE.md             # ← this document
-├── eslint.config.mjs · next.config.ts · package.json
+└── eslint.config.mjs · next.config.ts · package.json
 ```
 
-## 4. Routing map
+**Rendering:** Server Components by default; `"use client"` only for interactivity
+(cart, item sheet, header, forms). The backend session cookie is the source of
+truth; the `auth` store is a client cache hydrated from `/auth/me`.
+
+## 3. Routing map
+
+| Path | Purpose | Rendering |
+|------|---------|-----------|
+| `/` | Marketplace home (hero, meal tabs, restaurants, popular, why) | server + client islands |
+| `/restaurants/:id` | Restaurant banner + category menu | server (async params) |
+| `/cart` → `/checkout` → `/track` | Order flow (cart, payment, animated tracking) | client |
+| `/search` | Search dishes/restaurants | client |
+| `/my-orders` | Past orders | server |
+| `/account` | Profile + logout | client |
+| `/login` | Google + email/password | client |
+| `(dashboard)`: `/menu` `/orders` `/billing` `/reports` `/styleguide` | Legacy admin views | mixed |
+
+## 4. Workflows — activity diagrams
+
+### 4.1 Sign in
 
 ```mermaid
 flowchart TD
-    Root["/"] --> Home["Marketplace home<br/>hero · meal tabs · restaurants · popular · why"]
-    Root --> Rest["/restaurants/:id<br/>banner + category menu"]
-    Root --> Cart["/cart"] --> Checkout["/checkout"] --> Track["/track (animated)"]
-    Root --> Search["/search"]
-    Root --> Orders["/my-orders"]
-    Root --> Acct["/account"]
-    Login["/login"] -. sign in .-> Root
-    subgraph Legacy["(dashboard) — pre-marketplace admin views"]
-      Menu2["/menu"]
-      Ord2["/orders"]
-      Bill["/billing"]
-      Rep["/reports"]
-      SG["/styleguide"]
-    end
+    %% Activity diagram - sign in
+    start([Start]) --> d0{"Which method?"}
+    d0 -- "Google" --> g1["Open Google popup"]
+    g1 --> g2{"Chosen email is DIU?"}
+    g2 -- no --> e1["Sign out of Firebase and show error"] --> stop([End])
+    g2 -- yes --> g3["Get Firebase ID token"]
+    g3 --> c1["Call backend"]
+    d0 -- "Email" --> m1["Enter email and password"]
+    m1 --> m2{"DIU email and fields valid?"}
+    m2 -- no --> e2["Show error"] --> stop
+    m2 -- yes --> c1
+    c1 --> d1{"Backend accepts?"}
+    d1 -- no --> e3["Show error from response detail"] --> stop
+    d1 -- yes --> s1["Store user and redirect to home"]
+    s1 --> stop
 ```
 
-The consumer marketplace lives at the top level with its own chrome
-(`FoodShell`). The `(dashboard)` group is earlier admin-style scaffolding kept
-intact but unlinked from the new navigation.
-
-## 5. Design system
-
-All tokens live in **one place** — `src/styles/globals.css` inside the Tailwind
-v4 `@theme` block — so the whole app re-themes from a single file. The palette is
-a campus-food adaptation (Blinkit-inspired) with **Lexend** as the typeface.
-
-```mermaid
-flowchart LR
-    Theme["@theme tokens (globals.css)"] --> Color["colors: brand(yellow) · gold · success(green) · info(blue) · muted · border"]
-    Theme --> Radius["radius scale (sm…full)"]
-    Theme --> Shadow["shadow-card / -hover / -header"]
-    Theme --> Font["--font-sans = Lexend"]
-    Color --> UI["ui/* primitives + food/* components"]
-    Font --> UI
-```
-
-| Token | Use |
-|-------|-----|
-| `brand` (yellow `#F8CB46`) | cart button, accents |
-| `gold` (`#E1A82B`) | the "hall" wordmark |
-| `success`/`primary` (green `#0C831F`) | primary actions, ADD, veg, active nav |
-| `info` (blue `#256FEF`) | discount badges |
-| `muted` / `border` | section backgrounds, hairlines |
-
-UI primitives under `components/ui/` are hand-built (shadcn-style + CVA variants)
-on the installed Radix packages — no CLI dependency.
-
-## 6. The marketplace
-
-A multi-restaurant, Bengali campus food-delivery experience (prices in Taka ৳).
-Data is in `lib/restaurants.ts` (6 restaurants, ~46 dishes) with pure helpers for
-cart math.
+### 4.2 Browse & order
 
 ```mermaid
 flowchart TD
-    Data["lib/restaurants.ts<br/>restaurants · items · cart math · formatTaka"]
-    Home["HomeContent (meal filter)"] --> RCard["RestaurantCard"]
-    Home --> Dish["DishCard (ADD → stepper)"]
-    Rest["restaurants/:id"] --> Row["MenuItemRow"]
-    Row -->|half-portion items| Modal["ItemDetailModal (portion + qty)"]
-    Dish --> CartStore["food-cart store"]
-    Row --> CartStore
-    Modal --> CartStore
-    CartStore --> Bar["FloatingCartBar"]
-    CartStore --> CartPage["/cart → /checkout → /track"]
-    Data -.feeds.-> Home
-    Data -.feeds.-> Rest
+    %% Activity diagram - browse and order
+    start([Start]) --> a1["Browse restaurants on home"]
+    a1 --> a2["Open a restaurant menu"]
+    a2 --> d1{"Item has half portion?"}
+    d1 -- yes --> a3["Open item sheet, pick portion and quantity"]
+    d1 -- no --> a4["Tap ADD"]
+    a3 --> d2{"Different restaurant than current cart?"}
+    a4 --> d2
+    d2 -- yes --> a5["Replace cart with new restaurant"]
+    d2 -- no --> a6["Add to existing cart"]
+    a5 --> a7["Review cart"]
+    a6 --> a7
+    a7 --> a8["Checkout and place order"]
+    a8 --> a9["Track order"]
+    a9 --> stop([End])
 ```
 
-Key rule: the cart holds **one restaurant at a time** — adding from a different
-restaurant clears it. Items can be added as full or half portions (keyed
-`id` / `id__half`).
-
-## 7. State management
-
-Three Zustand stores (plus a legacy one). None of the marketplace stores are
-persisted, so SSR and the first client render agree (no hydration mismatch).
+### 4.3 Session bootstrap on load
 
 ```mermaid
-flowchart LR
-    subgraph Stores
-      Auth["auth (persisted)<br/>user {id,name,email,role}"]
-      FC["food-cart<br/>{cart: {key→qty}, cartRestaurant}"]
-      FU["food-ui<br/>item-detail modal state"]
-    end
-    AB["AuthBootstrap → /auth/me"] --> Auth
-    LoginForm --> Auth
-    DishCard --> FC
-    MenuItemRow --> FC
-    ItemDetailModal --> FC
-    Header -. reads count .-> FC
-    Header -. reads user .-> Auth
+flowchart TD
+    %% Activity diagram - session bootstrap
+    start([Start]) --> a1["App loads, AuthBootstrap mounts"]
+    a1 --> a2["Call GET /auth/me with cookie"]
+    a2 --> d1{"Authenticated?"}
+    d1 -- yes --> a3["Set user in auth store"] --> stop([End])
+    d1 -- no --> a4["Clear user, browse as guest"] --> stop
 ```
 
-The `useMounted()` hook (built on `useSyncExternalStore`) gates rendering of
-persisted/auth-dependent UI to avoid hydration mismatches.
+## 5. Interactions — sequence diagrams
 
-## 8. Authentication integration
-
-### 8.1 Pieces
-
-| File | Role |
-|------|------|
-| `lib/firebase.ts` | env-driven Firebase init (Google popup only). Inert if unconfigured. |
-| `lib/auth-api.ts` | `loginWithGoogleToken`, `loginWithEmail`, `registerWithEmail`, `fetchMe`, `logoutBackend` |
-| `components/auth/auth-bootstrap.tsx` | calls `/auth/me` on load → hydrates the `auth` store |
-| `shared/login-form.tsx` | Google + email/password UI |
-| `lib/email-policy.ts` | client-side `@diu.edu.bd` check |
-| `store/auth.ts` | the user cache (source of truth = backend cookie) |
-
-### 8.2 Session bootstrap
+### 5.1 Session bootstrap
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant L as RootLayout
-    participant AB as AuthBootstrap (mount)
-    participant API as fetchMe()
-    participant BE as GET /api/v1/auth/me
-    L->>AB: render
+    participant AB as AuthBootstrap
+    participant API as fetchMe
+    participant BE as GET /auth/me
+    L->>AB: mount
     AB->>API: on mount
-    API->>BE: cookie hc_session
-    alt 200
-        BE-->>AB: user → setUser(user)
-    else 401
-        BE-->>AB: setUser(null)
+    API->>BE: request with cookie
+    alt authenticated
+        BE-->>AB: user
+        AB->>AB: setUser(user)
+    else not authenticated
+        BE-->>AB: 401
+        AB->>AB: setUser(null)
     end
 ```
 
-### 8.3 Google sign-in
+### 5.2 Google sign-in
 
 ```mermaid
 sequenceDiagram
@@ -255,37 +216,39 @@ sequenceDiagram
     participant U as User
     participant LF as LoginForm
     participant FB as Firebase SDK
-    participant API as loginWithGoogleToken
+    participant API as auth-api
     participant BE as POST /auth/login/google
-    U->>LF: "Continue with Google"
+    U->>LF: Continue with Google
     LF->>FB: signInWithPopup
-    FB-->>LF: credential (user.email, getIdToken())
-    LF->>LF: isAllowedEmail(email)? (else signOut + error)
-    LF->>API: idToken
-    API->>BE: {id_token} (credentials: include)
-    BE-->>LF: 200 user + Set-Cookie hc_session
-    LF->>LF: setUser(user) → router.push("/")
+    FB-->>LF: credential with email and getIdToken
+    LF->>LF: check DIU email else signOut
+    LF->>API: loginWithGoogleToken
+    API->>BE: id_token with credentials include
+    BE-->>LF: 200 user and Set-Cookie
+    LF->>LF: setUser and redirect home
 ```
 
-### 8.4 Email sign-in / register
+### 5.3 Email sign-in / register
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant LF as LoginForm
     participant API as auth-api
-    participant BE as POST /auth/login | /auth/register
-    LF->>LF: validate fields + isAllowedEmail
-    LF->>API: login(email,pw) | register(email,pw,name)
-    API->>BE: JSON (credentials: include)
-    alt ok
-        BE-->>LF: user + Set-Cookie → setUser → push("/")
+    participant BE as POST /auth/login or /auth/register
+    LF->>LF: validate fields and DIU email
+    LF->>API: login or register
+    API->>BE: JSON with credentials include
+    alt success
+        BE-->>LF: user and Set-Cookie
+        LF->>LF: setUser and redirect home
     else error
-        BE-->>LF: {detail, code} → toast(detail)
+        BE-->>LF: detail and code
+        LF->>LF: show toast
     end
 ```
 
-### 8.5 Logout
+### 5.4 Logout
 
 ```mermaid
 sequenceDiagram
@@ -295,72 +258,57 @@ sequenceDiagram
     participant BE as POST /auth/logout
     participant FB as Firebase
     A->>API: logout
-    API->>BE: clears Redis session + cookie
-    A->>FB: signOut(auth)
-    A->>A: setUser(null) → router.push("/")
+    API->>BE: clear Redis session and cookie
+    A->>FB: signOut
+    A->>A: setUser(null) and redirect home
 ```
 
-### 8.6 DIU email restriction
+## 6. Design system
 
-```mermaid
-flowchart TD
-    In["email (typed or from Google)"] --> Check{"@diu.edu.bd<br/>or *.diu.edu.bd?"}
-    Check -->|no| Stop["toast: Only @diu.edu.bd accepted<br/>(Google: signOut first)"]
-    Check -->|yes| Call["call backend (which re-checks authoritatively)"]
-```
+All tokens live in `src/styles/globals.css` inside the Tailwind v4 `@theme` block,
+so the whole app re-themes from one file. Typeface: **Lexend**.
 
-The client check is **UX only**; the backend independently enforces the same
-policy and is the real gate.
+| Token | Use |
+|-------|-----|
+| `brand` (yellow `#F8CB46`) | cart button, accents |
+| `gold` (`#E1A82B`) | the "hall" wordmark |
+| `success` / `primary` (green `#0C831F`) | primary actions, ADD, veg, active nav |
+| `info` (blue `#256FEF`) | discount badges |
+| `muted` / `border` | section backgrounds, hairlines |
 
-## 9. API client & cross-origin cookies
+UI primitives under `components/ui/` are hand-built (shadcn-style + CVA) on the
+installed Radix packages — no CLI dependency.
 
-`lib/api.ts` is a thin `fetch` wrapper: it prefixes `NEXT_PUBLIC_API_URL`, sends
-`credentials: "include"` (so the session cookie flows), sets JSON headers, and
-throws `Error(detail)` on non-2xx.
+## 7. State management
 
-```mermaid
-flowchart LR
-    C["api.get/post(path)"] --> U["BASE_URL + path"]
-    U --> F["fetch(credentials: include)"]
-    F -->|2xx| J["res.json() (or undefined on 204)"]
-    F -->|non-2xx| E["throw Error(body.detail)"]
-```
+Three Zustand stores; none of the marketplace stores are persisted, so SSR and the
+first client render agree (no hydration mismatch).
 
-- **Local dev:** frontend `:3000` → backend `:8000` are the same site
+| Store | Persisted | Holds |
+|-------|-----------|-------|
+| `auth` | yes | `user { id, name, email, role }` (cache of `/auth/me`) |
+| `food-cart` | no | `cart { key → qty }`, `cartRestaurant` (one restaurant at a time; `id` / `id__half` keys) |
+| `food-ui` | no | item-detail modal state (open item, portion, quantity) |
+
+`useMounted()` (built on `useSyncExternalStore`) gates auth-dependent UI to avoid
+hydration mismatches.
+
+## 8. API client & cookies
+
+`lib/api.ts` prefixes `NEXT_PUBLIC_API_URL`, sends `credentials: "include"` (so the
+session cookie flows), sets JSON headers, and throws `Error(detail)` on non-2xx.
+
+- **Local dev:** frontend `:3000` and backend `:8000` are the same site
   (`localhost`), so the `SameSite=Lax` cookie works directly.
-- **Production:** if hosted on different domains, make the calls same-origin
-  (route `/api/*` through a Vercel rewrite) so the cookie stays first-party, or
-  use `SameSite=None; Secure`. See the backend doc's deployment section.
+- **Production:** if hosted on different domains, route `/api/*` through a Vercel
+  rewrite so calls are same-origin and the cookie stays first-party — or use
+  `SameSite=None; Secure`. (See the backend doc's deployment section.)
 
-## 10. Component composition
-
-```mermaid
-flowchart TD
-    Page["page (server)"] --> Shell["FoodShell ('use client')"]
-    Shell --> Header["FoodHeader (logo · location · search · cart)"]
-    Shell --> Main["main → page content"]
-    Shell --> Footer["FoodFooter (desktop)"]
-    Shell --> Nav["BottomNav (mobile)"]
-    Shell --> FBar["FloatingCartBar"]
-    Shell --> Modal["ItemDetailModal"]
-```
-
-`FoodShell` provides the responsive chrome and mounts the global item-detail
-modal + floating cart bar; mobile shows the bottom nav, desktop shows the footer.
-
-## 11. Build & deployment
-
-```mermaid
-flowchart LR
-    Dev["pnpm dev (Turbopack :3000)"] --> Code["edit"]
-    Code --> Lint["eslint (flat config)"]
-    Code --> TS["tsc --noEmit"]
-    Code --> Build["next build (17 routes)"]
-    Build --> Vercel["Vercel (frontend)"]
-```
+## 9. Build & deployment
 
 - Next 16 removed `next lint`; linting uses a flat `eslint.config.mjs`
   (`eslint-config-next` core-web-vitals + typescript).
 - `NEXT_PUBLIC_*` env: `NEXT_PUBLIC_API_URL` (backend base) and the
   `NEXT_PUBLIC_FIREBASE_*` web config (public, safe to expose).
-- CI (`.github/workflows`) runs install → lint → typecheck → build.
+- CI (`.github/workflows`) runs install → lint → typecheck → build; the app
+  deploys on Vercel.
