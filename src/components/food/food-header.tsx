@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, MapPin, Search, ShoppingCart } from "lucide-react";
+import { ArrowLeft, MapPin, Search } from "lucide-react";
 import { FoodLogo } from "./food-logo";
-import { useFoodCart } from "@/store/food-cart";
-import { cartCount } from "@/lib/restaurants";
 import { useAuthStore } from "@/store/auth";
 import { useMounted } from "@/hooks/use-mounted";
 
@@ -13,7 +11,6 @@ export function FoodHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const mounted = useMounted();
-  const count = useFoodCart((s) => cartCount(s.cart));
   const user = useAuthStore((s) => s.user);
   const isHome = pathname === "/";
 
@@ -51,15 +48,6 @@ export function FoodHeader() {
               Login
             </Link>
           )}
-          <Link
-            href="/cart"
-            className="flex items-center gap-2 rounded-[14px] bg-brand px-[22px] py-3 text-[15px] font-extrabold text-brand-foreground shadow-card"
-          >
-            <ShoppingCart className="h-5 w-5" /> My Cart
-            {mounted && count > 0 && (
-              <span className="rounded-full bg-success px-2 py-0.5 text-xs text-primary-foreground">{count}</span>
-            )}
-          </Link>
         </div>
       </header>
 
@@ -81,18 +69,6 @@ export function FoodHeader() {
               <span className="block text-sm font-extrabold text-foreground">Hostel Block A ▾</span>
               <span className="block truncate text-[11px] text-muted-foreground">Room 214 · Campus</span>
             </span>
-          </Link>
-          <Link
-            href="/cart"
-            aria-label="Cart"
-            className="relative flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[13px] bg-brand"
-          >
-            <ShoppingCart className="h-5 w-5 text-brand-foreground" />
-            {mounted && count > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-[19px] min-w-[19px] items-center justify-center rounded-full bg-success px-1 text-[11px] font-extrabold text-primary-foreground">
-                {count}
-              </span>
-            )}
           </Link>
         </div>
       </header>

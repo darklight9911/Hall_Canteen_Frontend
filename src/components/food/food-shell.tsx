@@ -4,6 +4,7 @@ import { FoodHeader } from "./food-header";
 import { FoodFooter } from "./food-footer";
 import { BottomNav } from "./bottom-nav";
 import { FloatingCartBar } from "./floating-cart-bar";
+import { CartFab } from "./cart-fab";
 import { ItemDetailModal } from "./item-detail-modal";
 
 /** Marketplace chrome: responsive header, footer (web), bottom nav (mobile), cart bar + item sheet. */
@@ -15,6 +16,7 @@ export function FoodShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <FoodFooter />
+      <CartFab />
       <FloatingCartBar />
       <BottomNav />
       <ItemDetailModal />

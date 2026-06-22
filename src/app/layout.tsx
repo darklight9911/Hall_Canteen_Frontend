@@ -30,7 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${lexend.variable} font-sans antialiased`}>
+      <body className={`${lexend.variable} font-sans antialiased`} suppressHydrationWarning>
         <AuthBootstrap />
         {children}
         <Toaster richColors position="top-right" />
