@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Check, X, ShieldCheck } from "lucide-react";
-import { FoodShell } from "@/components/food/food-shell";
+import { ManageShell } from "@/components/manage/manage-shell";
 import { Button } from "@/components/ui/button";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -87,15 +87,15 @@ export default function DeveloperApplicationsPage() {
 
   if (!mounted) {
     return (
-      <FoodShell>
+      <ManageShell>
         <div className="h-40" />
-      </FoodShell>
+      </ManageShell>
     );
   }
 
   if (!isDev) {
     return (
-      <FoodShell>
+      <ManageShell>
         <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-8 text-center">
           <ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
           <h1 className="mt-3 text-xl font-extrabold text-foreground">Developers only</h1>
@@ -103,12 +103,12 @@ export default function DeveloperApplicationsPage() {
             You need a developer account to review partner applications.
           </p>
         </div>
-      </FoodShell>
+      </ManageShell>
     );
   }
 
   return (
-    <FoodShell>
+    <ManageShell>
       <div className="mb-5 flex items-center gap-3">
         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent">
           <ShieldCheck className="h-6 w-6 text-success" />
@@ -169,7 +169,7 @@ export default function DeveloperApplicationsPage() {
           )}
         </TabsContent>
       </Tabs>
-    </FoodShell>
+    </ManageShell>
   );
 }
 

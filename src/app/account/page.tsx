@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ReceiptText, MapPin, HelpCircle, LogOut, LogIn, ChevronRight, Store, ShieldCheck } from "lucide-react";
+import { ReceiptText, MapPin, HelpCircle, LogOut, LogIn, ChevronRight } from "lucide-react";
 import { signOut } from "firebase/auth";
 import { FoodShell } from "@/components/food/food-shell";
+import { ManageShell } from "@/components/manage/manage-shell";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { logoutBackend } from "@/lib/auth-api";
@@ -51,18 +52,13 @@ export default function AccountPage() {
     );
   }
 
-  const menu = [
-    ...(user.role === "partner" || user.role === "developer"
-      ? [{ icon: Store, label: "Partner dashboard", href: "/partner" }]
-      : []),
-    ...(user.role === "developer"
-      ? [{ icon: ShieldCheck, label: "Review partner applications", href: "/developer/applications" }]
-      : []),
-    ...MENU,
-  ];
+  // Partners & developers get the management console (with the role sidebar);
+  // students keep the consumer chrome. Their role features live in the sidebar.
+  const isManager = user.role === "developer" || user.role === "partner";
+  const Shell = isManager ? ManageShell : FoodShell;
 
   return (
-    <FoodShell>
+    <Shell>
       <h1 className="mb-5 text-2xl font-extrabold tracking-tight text-foreground">Account</h1>
 
       <div className="mb-4 flex items-center gap-4 rounded-2xl border border-border bg-card p-5">
@@ -79,7 +75,7 @@ export default function AccountPage() {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        {menu.map((m) => (
+        {MENU.map((m) => (
           <Link
             key={m.label}
             href={m.href}
@@ -111,6 +107,6 @@ export default function AccountPage() {
         <LogOut className="h-4 w-4" />
         Log out
       </Button>
-    </FoodShell>
+    </Shell>
   );
 }

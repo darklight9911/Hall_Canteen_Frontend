@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus, X, Store } from "lucide-react";
-import { FoodShell } from "@/components/food/food-shell";
+import { ManageShell } from "@/components/manage/manage-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -144,15 +144,15 @@ export default function PartnerDashboardPage() {
 
   if (!mounted) {
     return (
-      <FoodShell>
+      <ManageShell>
         <div className="h-40" />
-      </FoodShell>
+      </ManageShell>
     );
   }
 
   if (!isPartner) {
     return (
-      <FoodShell>
+      <ManageShell>
         <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-8 text-center">
           <Store className="mx-auto h-10 w-10 text-success" />
           <h1 className="mt-3 text-xl font-extrabold text-foreground">You&apos;re not a partner yet</h1>
@@ -163,12 +163,12 @@ export default function PartnerDashboardPage() {
             <Link href="/partner/apply">Become a partner</Link>
           </Button>
         </div>
-      </FoodShell>
+      </ManageShell>
     );
   }
 
   return (
-    <FoodShell>
+    <ManageShell>
       <div className="mb-6 flex items-center gap-3">
         <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-2xl">🏪</span>
         <div>
@@ -279,6 +279,6 @@ export default function PartnerDashboardPage() {
           )}
         </div>
       </div>
-    </FoodShell>
+    </ManageShell>
   );
 }
