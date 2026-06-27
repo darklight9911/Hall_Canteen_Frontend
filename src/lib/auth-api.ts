@@ -7,6 +7,7 @@ interface BackendUser {
   email: string;
   full_name: string;
   role: Role;
+  avatar?: string | null;
 }
 
 const AUTH = "/api/v1/auth";
@@ -17,6 +18,7 @@ function toUser(u: BackendUser): User {
     name: u.full_name || u.email.split("@")[0],
     email: u.email,
     role: u.role,
+    avatar: u.avatar ?? undefined,
   };
 }
 
@@ -45,6 +47,18 @@ export async function fetchMe(): Promise<User | null> {
   } catch {
     return null;
   }
+}
+
+export function updateProfile(input: {
+  fullName?: string;
+  avatar?: string;
+}): Promise<User> {
+  return api
+    .patch<BackendUser>(`${AUTH}/me`, {
+      full_name: input.fullName ?? null,
+      avatar: input.avatar ?? null,
+    })
+    .then(toUser);
 }
 
 export async function logoutBackend(): Promise<void> {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, MapPin, Search } from "lucide-react";
 import { FoodLogo } from "./food-logo";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { useAuthStore } from "@/store/auth";
 import { useMounted } from "@/hooks/use-mounted";
 
@@ -38,9 +39,7 @@ export function FoodHeader() {
           </Link>
           {mounted && user ? (
             <Link href="/account" className="flex items-center gap-2 text-sm font-bold text-foreground">
-              <span className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-success font-extrabold text-primary-foreground">
-                {user.name.charAt(0).toUpperCase()}
-              </span>
+              <UserAvatar name={user.name} avatar={user.avatar} size={34} />
               {user.name}
             </Link>
           ) : (

@@ -6,6 +6,7 @@ export interface User {
   name: string;
   email: string;
   role: Role;
+  avatar?: string;
 }
 
 export type MenuCategory = "breakfast" | "lunch" | "dinner" | "snacks";
