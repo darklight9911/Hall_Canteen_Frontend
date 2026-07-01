@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithPopup, signOut } from "firebase/auth";
+import { Store } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [partnerLoading, setPartnerLoading] = useState(false);
 
   function message(err: unknown): string {
     return err instanceof Error && err.message ? err.message : "Something went wrong";
@@ -54,6 +56,35 @@ export function LoginForm() {
       }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function onPartnerGoogle() {
+    if (!auth) {
+      toast.error("Google sign-in isn't configured yet");
+      return;
+    }
+    setPartnerLoading(true);
+    try {
+      const cred = await signInWithPopup(auth, googleProvider);
+      const idToken = await cred.user.getIdToken();
+      const user = await loginWithGoogleToken(idToken);
+      if (user.role !== "partner" && user.role !== "developer") {
+        // Not an approved partner — sign them out of Firebase and reject
+        await signOut(auth);
+        toast.error("No approved partner account found for this Google account");
+        return;
+      }
+      setUser(user);
+      toast.success("Welcome back, partner!");
+      router.push("/partner");
+    } catch (err) {
+      const code = (err as { code?: string })?.code;
+      if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request") {
+        toast.error(message(err));
+      }
+    } finally {
+      setPartnerLoading(false);
     }
   }
 
@@ -161,6 +192,27 @@ export function LoginForm() {
         </Button>
         <p className="text-center text-xs text-muted-foreground">{EMAIL_POLICY_MESSAGE}</p>
       </form>
+
+      {/* ── Partner sign-in ── */}
+      <div className="mt-2 rounded-xl border border-border bg-muted/50 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Store className="h-4 w-4 text-success shrink-0" />
+          <span className="text-sm font-extrabold text-foreground">Already an approved partner?</span>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Sign in with the Google account you used when applying. Only approved partners can access the partner dashboard.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={onPartnerGoogle}
+          disabled={partnerLoading || loading}
+        >
+          <GoogleIcon />
+          {partnerLoading ? "Signing in…" : "Sign in as Partner"}
+        </Button>
+      </div>
     </div>
   );
 }

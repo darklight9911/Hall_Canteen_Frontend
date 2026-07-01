@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
+  Clock,
   LayoutDashboard,
   Store,
   User,
@@ -44,7 +45,13 @@ export function ManageSidebar({ collapsed, onToggleCollapse, onNavigate }: Props
       ? [{ label: "Developer", items: [{ icon: ClipboardCheck, label: "Applications", href: "/developer/applications" }] }]
       : []),
     ...(isPartner
-      ? [{ label: "Partner", items: [{ icon: LayoutDashboard, label: "Dashboard", href: "/partner" }] }]
+      ? [{
+          label: "Partner",
+          items: [
+            { icon: LayoutDashboard, label: "Dashboard", href: "/partner" },
+            { icon: Clock, label: "Delivery Slots", href: "/partner/slots" },
+          ],
+        }]
       : []),
     {
       label: "General",

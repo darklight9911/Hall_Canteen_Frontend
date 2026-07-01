@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand/15 via-background to-accent px-4 py-10">
+    <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-gradient-to-br from-brand/15 via-background to-accent px-4 py-10">
       <div className="w-full max-w-sm space-y-6 rounded-xl border border-border bg-card p-8 shadow-card-hover">
         <div className="flex flex-col items-center gap-2 text-center">
           <Wordmark className="text-3xl" />
@@ -18,9 +18,9 @@ export default function LoginPage() {
         </div>
         <LoginForm />
         <div className="border-t border-border pt-4 text-center text-sm">
-          <span className="text-muted-foreground">Run a food shop? </span>
+          <span className="text-muted-foreground">New to Hall Canteen? </span>
           <Link href="/partner/apply" className="font-extrabold text-success hover:underline">
-            Want to be a partner?
+            Apply to become a partner →
           </Link>
         </div>
       </div>

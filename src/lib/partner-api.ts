@@ -32,6 +32,7 @@ export interface PartnerFoodItem {
   category: string;
   image: string | null;
   is_available: boolean;
+  slots: DeliverySlot[];
 }
 
 export interface FoodItemInput {
@@ -41,6 +42,7 @@ export interface FoodItemInput {
   category: string;
   image?: string | null;
   is_available: boolean;
+  slot_ids?: string[];
 }
 
 // ---- application (any Google account) ----
@@ -85,6 +87,39 @@ export function updateItem(id: string, body: Partial<FoodItemInput>): Promise<Pa
 }
 export function deleteItem(id: string): Promise<void> {
   return api.delete(`${P}/items/${id}`);
+}
+
+// ---- delivery slots ----
+export interface DeliverySlot {
+  id: string;
+  restaurant_id: string;
+  label: string;
+  start_time: string; // "HH:MM:SS"
+  end_time: string;
+  max_orders: number | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface DeliverySlotInput {
+  label: string;
+  start_time: string; // "HH:MM"
+  end_time: string;
+  max_orders?: number | null;
+  is_active: boolean;
+}
+
+export function listSlots(): Promise<DeliverySlot[]> {
+  return api.get(`${P}/slots`);
+}
+export function createSlot(body: DeliverySlotInput): Promise<DeliverySlot> {
+  return api.post(`${P}/slots`, body);
+}
+export function updateSlot(id: string, body: Partial<DeliverySlotInput>): Promise<DeliverySlot> {
+  return api.patch(`${P}/slots/${id}`, body);
+}
+export function deleteSlot(id: string): Promise<void> {
+  return api.delete(`${P}/slots/${id}`);
 }
 
 // ---- developer review ----
